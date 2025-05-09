@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Економічна карта Африки</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 600px; width: 100%; }
+        .legend { 
+            background: white; 
+            padding: 10px; 
+            border: 1px solid black; 
+            line-height: 18px; 
+        }
+        .legend i { 
+            width: 18px; 
+            height: 18px; 
+            float: left; 
+            margin-right: 8px; 
+            opacity: 0.7; 
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Ініціалізація карти, центрованої на Африці
+        var map = L.map('map').setView([0, 20], 3);
+
+        // Додавання тайлів OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // a) Райони видобутку (Нафта, Залізо, Мідь, Алюміній)
+        var miningAreas = [
+            { name: "Нафта - Дельта Нігеру", coords: [5.5, 6.5], type: "Нафта" },
+            { name: "Нафта - Гаварі (Алжир)", coords: [32, 7], type: "Нафта" },
+            { name: "Залізо - Сіманду (Гвінея)", coords: [9, -10], type: "Залізо" },
+            { name: "Залізо - Сішен (ПАР)", coords: [-27.7, 23], type: "Залізо" },
+            { name: "Мідь - Коппербелт (Замбія)", coords: [-12.5, 27.5], type: "Мідь" },
+            { name: "Мідь - Катанга (ДР Конго)", coords: [-11, 27], type: "Мідь" },
+            { name: "Алюміній - Боке (Гвінея)", coords: [11, -14], type: "Алюміній" }
+        ];
+
+        miningAreas.forEach(area => {
+            L.circleMarker(area.coords, {
+                radius: 8,
+                color: area.type === "Нафта" ? "black" : area.type === "Залізо" ? "red" : area.type === "Мідь" ? "orange" : "silver",
+                fillOpacity: 0.5
+            }).bindTooltip(area.name, { permanent: true, direction: 'right', offset: [10, 0] }).addTo(map);
+        });
+
+        // b) Нафтопроводи (приблизні маршрути)
+        var pipelines = [
+            { name: "Транссахарський нафтопровід", path: [[32, 7], [13, 8]] }, // Алжир до Нігерії
+            { name: "Дельта Нігеру до Порт-Харкорту", path: [[5.5, 6.5], [4.8, 7.1]] }
+        ];
+
+        pipelines.forEach(pipeline => {
+            L.polyline(pipeline.path, { color: "black", dashArray: "5, 10" })
+                .bindTooltip(pipeline.name, { permanent: true, direction: 'center' })
+                .addTo(map);
+        });
+
+        // c) Центри нафтопереробки
+        var refineries = [
+            { name: "Скікда", coords: [36.8, 6.9], country: "Алжир" },
+            { name: "Александрія", coords: [31.2, 29.9], country: "Єгипет" },
+            { name: "Порт-Харкорт", coords: [4.8, 7.1], country: "Нігерія" },
+            { name: "Тема", coords: [5.6, 0.0], country: "Гана" },
+            { name: "Луанда", coords: [-8.8, 13.2], country: "Ангола" },
+            { name: "Момбаса", coords: [-4.0, 39.7], country: "Кенія" },
+            { name: "Дурбан", coords: [-29.8, 31.0], country: "ПАР" }
+        ];
+
+        refineries.forEach(refinery => {
+            L.marker(refinery.coords, {
+                icon: L.divIcon({ className: 'refinery', html: '<div style="color:blue;font-weight:bold;">Н</div>' })
+            }).bindTooltip(`${refinery.name} (${refinery.country})`, { permanent: true, direction: 'right', offset: [10, 0] }).addTo(map);
+        });
+
+        // d) Транспортні магістралі
+        var highways = [
+            { name: "Трансафриканська (Магрибська)", path: [[34, -7], [30, 31]], countries: "Марокко, Алжир, Лівія, Єгипет" },
+            { name: "Транссахарська", path: [[36, 3], [6, 3]], countries: "Алжир, Нігер, Нігерія" },
+            { name: "Транссахельська", path: [[14, -17], [12, 15]], countries: "Сенегал, Малі, Нігер, Чад" },
+            { name: "Лагос-Момбаса", path: [[6, 3], [-4, 39]], countries: "Нігерія, Камерун, ДР Конго, Уганда, Кенія" },
+            { name: "Каїр-Габороне", path: [[30, 31], [-24, 25]], countries: "Єгипет, Судан, Ефіопія, Кенія, Замбія, Ботсвана" }
+        ];
+
+        highways.forEach(highway => {
+            L.polyline(highway.path, { color: "purple" })
+            .bindTooltip(`${highway.name} (${highway.countries})`, { permanent: true, direction: 'center' })
+            .addTo(map);
+        });
+
+        // Залізниці
+        var railways = [
+            { name: "Лобіту-Бейра", path: [[-12, 13], [-19, 34]], countries: "Ангола, Мозамбік" },
+            { name: "Людериц-Дурбан", path: [[-26, 15], [-29, 31]], countries: "Намібія, ПАР" }
+        ];
+
+        railways.forEach(railway => {
+            L.polyline(railway.path, { color: "green", dashArray: "10, 10" })
+            .bindTooltip(`${railway.name} (${railway.countries})`, { permanent: true, direction: 'center' })
+            .addTo(map);
+        });
+
+        // e) Порти експорту
+        var ports = [
+            { name: "Александрія", coords: [31.2, 29.9], country: "Єгипет" },
+            { name: "Касабланка", coords: [33.6, -7.6], country: "Марокко" },
+            { name: "Лагос", coords: [6.5, 3.4], country: "Нігерія" },
+            { name: "Момбаса", coords: [-4.0, 39.7], country: "Кенія" },
+            { name: "Дурбан", coords: [-29.8, 31.0], country: "ПАР" },
+            { name: "Дакар", coords: [14.7, -17.4], country: "Сенегал" },
+            { name: "Дар-ес-Салам", coords: [-6.8, 39.3], country: "Танзанія" },
+            { name: "Кейптаун", coords: [-33.9, 18.4], country: "ПАР" }
+        ];
+
+        ports.forEach(port => {
+            L.marker(port.coords, {
+                icon: L.divIcon({ className: 'port', html: '<div style="color:red;font-weight:bold;">П</div>' })
+            }).bindTooltip(`${port.name} (${port.country})`, { permanent: true, direction: 'right', offset: [10, 0] }).addTo(map);
+        });
+
+        // Додавання легенди
+        var legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function () {
+            var div = L.DomUtil.create('div', 'legend');
+            div.innerHTML += '<i style="background:black"></i> Видобуток нафти<br>';
+            div.innerHTML += '<i style="background:red"></i> Видобуток заліза<br>';
+            div.innerHTML += '<i style="background:orange"></i> Видобуток міді<br>';
+            div.innerHTML += '<i style="background:silver"></i> Видобуток алюмінію<br>';
+            div.innerHTML += '<i style="background:blue;color:white;text-align:center;">Н</i> Нафтопереробка<br>';
+            div.innerHTML += '<i style="background:red;color:white;text-align:center;">П</i> Порт експорту<br>';
+            div.innerHTML += '<i style="background:purple"></i> Автомагістраль<br>';
+            div.innerHTML += '<i style="background:green"></i> Залізниця<br>';
+            div.innerHTML += '<i style="background:black;border:1px dashed black;"></i> Нафтопровід<br>';
+            return div;
+        };
+        legend.addTo(map);
+    </script>
+</body>
+</html>
